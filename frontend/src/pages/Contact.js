@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import http from "./http";
 import { useNavigate } from "react-router-dom";
 import { browserName, isBrowser, isMobile } from "react-device-detect";
 
-export default function Contact({ inputs, setInputs }) {
-  const [date, setDate] = useState();
+export default function Contact({ input, setInput }) {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
 
@@ -16,63 +15,49 @@ export default function Contact({ inputs, setInputs }) {
 
   const errorDiv = error ? (
     <div className="error">
-      <i class="material-icons error-icon"></i>
+      <i className="material-icons error-icon"></i>
       {error}
     </div>
   ) : (
     ""
   );
 
-  useEffect(() => {
-    http.post("/userdetails", userDetails).catch(function (error) {
-      console.log("error", error);
-    });
-  }, []);
-
   const handelChange = (event) => {
     const name = event.target.name;
     const value = event.target.value;
 
-    setInputs((values) => ({ ...values, [name]: value }));
-  };
-
-  const handelDate = (date) => {
-    setInputs((values) => ({
-      ...values,
-      ["dob"]: date.toLocaleDateString("zh-Hans-CN"),
-    }));
-    setDate(date);
+    setInput((values) => ({ ...values, [name]: value }));
   };
 
   const submitForm = (e) => {
     e.preventDefault();
 
-    const { first_name, last_name, phone_number, email_address, dob } = inputs;
-
     setError(true);
+
+    if (!/^\d{10}$/.test(input.phone_number)) {
+      alert("Invalid phone number");
+      return;
+    }
     if (
-      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(inputs.email_address)
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(input.email_address)
     ) {
       alert("Invalid email address");
       return;
     }
-
-    if (5 <= Object.keys(inputs).length) {
-      http
-        .post("/users", inputs)
-        .then((res) => {
-          navigate(`/address/${inputs.first_name}`);
-        })
-        .catch(function (err) {
-          setError(err.response.data.message);
-          console.log("error", err.response.data.message);
-        });
-    }
+    http
+      .post("/users", input)
+      .then((res) => {
+        navigate(`/address/${input.first_name}`);
+      })
+      .catch(function (err) {
+        setError(err.response.data.message);
+        console.log("error", err.response.data.message);
+      });
   };
 
   return (
     <div>
-      <h2>Enter Your Personal Details</h2>
+      <h2>Enter Your Contact Details</h2>
       <div className="container">
         <div className="row">
           <div className="offset-lg-2 col-lg-8 offset-md-1 col-md-10 col-12 text-center">
@@ -87,10 +72,10 @@ export default function Contact({ inputs, setInputs }) {
                     type="number"
                     name="phone_number"
                     className="form-control"
-                    value={inputs.phone_number || ""}
+                    value={input.phone_number || ""}
                     onChange={handelChange}
                   ></input>
-                  {error && null == inputs?.phone_number ? (
+                  {error && null == input?.phone_number ? (
                     <label className="text-danger">
                       Phone Number cannot be Empty
                     </label>
@@ -105,10 +90,10 @@ export default function Contact({ inputs, setInputs }) {
                     type="email"
                     name="email_address"
                     className="form-control"
-                    value={inputs.email_address || ""}
+                    value={input.email_address || ""}
                     onChange={handelChange}
                   ></input>
-                  {error && null == inputs?.email_address ? (
+                  {error && null == input?.email_address ? (
                     <label className="text-danger">
                       Email Address cannot be Empty
                     </label>
